@@ -60,7 +60,6 @@
     font-size: 16px;
   }
 
-  /* Floating balloons */
   .balloon {
     position: fixed;
     bottom: -100px;
@@ -73,7 +72,6 @@
     100% { transform: translateY(-120vh); }
   }
 
-  /* Cake */
   .cake {
     font-size: 60px;
     margin-top: 20px;
@@ -103,15 +101,15 @@
 <textarea id="message" placeholder="Write a birthday message"></textarea><br><br>
 <button onclick="sendMessage()">Send 🎂</button>
 
-<!-- Messages Display -->
+<!-- Messages -->
 <div id="messages"></div>
 
-<!-- Firebase SDKs -->
+<!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
   import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-  // Your Firebase config
+  // Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyD-MYvgG70K-VVYPx0mXR0A_Lmk_fMguLo",
     authDomain: "birthday-alicia.firebaseapp.com",
@@ -121,45 +119,37 @@
     appId: "1:4290659284:web:04866d5d0568687aa3cc41"
   };
 
+  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // Import confetti
+  // Import confetti library
   import confetti from "https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js";
 
   // Send a message
   window.sendMessage = async function() {
     const name = document.getElementById("name").value || "Anonymous";
-    const message = document.getElementById("message").value;
+    const message = document.getElementById("message").value.trim();
     if (!message) return alert("Please type a message!");
 
-    await addDoc(collection(db, "messages"), {
-      name: name,
-      message: message
-    });
+    try {
+      await addDoc(collection(db, "messages"), { name, message });
+      document.getElementById("name").value = "";
+      document.getElementById("message").value = "";
 
-    document.getElementById("name").value = "";
-    document.getElementById("message").value = "";
-
-    // Fire confetti
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 }
-    });
+      // Confetti on send
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+    } catch (err) {
+      alert("Error sending message: " + err.message);
+    }
   };
 
-  // Real-time messages
+  // Display messages in real-time
   onSnapshot(collection(db, "messages"), (snapshot) => {
     let html = "";
     snapshot.forEach(doc => {
       const data = doc.data();
-      html += `
-        <div class="message">
-          <b>${data.name}</b><br>
-          ${data.message}
-        </div>
-      `;
+      html += `<div class="message"><b>${data.name}</b><br>${data.message}</div>`;
     });
     document.getElementById("messages").innerHTML = html;
   });
@@ -169,9 +159,3 @@
 
 </body>
 </html>
-
-
-
-
-
-
